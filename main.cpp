@@ -2,7 +2,9 @@
 #include <bits/stdc++.h>
 
 #include "Graph.h"
+#include "Ui.h"
 #include "Vertex.h"
+
 
 // useful tool for strings that replaces all instances of a character with another
 std::string replaceAll(std::string str, const std::string& from, const std::string& to) {
@@ -43,7 +45,9 @@ int main() {
         airports.add_edge(v1, v2, std::stoi(v[4]), std::stoi(v[5])); // Add the edge with the distance and cost put in
     }
     
-    airports.print();
+display_menu(airports);
+
 
     return 0;
 }
+
