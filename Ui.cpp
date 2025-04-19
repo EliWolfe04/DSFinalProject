@@ -4,7 +4,8 @@
 #include <string>
 #include <climits>
 #include <limits>
-
+#include <vector>
+#include <iomanip>
 
 #define intMAX 3000 
 
@@ -14,7 +15,7 @@ void display_menu(Graph& g) {
     while (true) {
         std::cout << "\n--- Welcome to Florida Poly Airport Optimization System ---\n";
         std::cout << "1. Find shortest path between two airports\n";
-        std::cout << "2. Option 2 (Not implemented yet)\n";
+        std::cout << "2. Find all shortest paths between an airport and a state.\n";
         std::cout << "3. Option 3 (Not implemented yet)\n";
         std::cout << "4. Option 4 (Not implemented yet)\n";
         std::cout << "5. Count and display total direct flight connections\n";
@@ -28,13 +29,16 @@ void display_menu(Graph& g) {
 
         switch (choice) {
             case 1:
-                find_shortest_path_ui(g);
+                find_shortest_path_ui(g); // Task 2
+                break;
+            case 2:
+                find_shortest_path_airport_state(g); // Task 3
                 break;
             case 5:
-                g.count_and_display_connections();
+                g.count_and_display_connections(); // Task 5
                 break;
             case 6: {
-                Graph gu = g.create_undirected_graph();
+                Graph gu = g.create_undirected_graph(); // Task 6
                 std::cout << "\n--- Undirected Graph G_u ---\n";
                 gu.print();
                 break;
@@ -42,13 +46,88 @@ void display_menu(Graph& g) {
             case 0:
                 std::cout << "Exiting...\n";
                 return;
-            case 2: case 3: case 4: case 7:
+            case 3: case 4: case 7:
                 std::cout << "Sorry, that option isn't implemented yet.\n";
                 break;
             default:
                 std::cout << "Invalid choice. Try again.\n";
                 break;
         }
+    }
+}
+
+// Task 3
+void find_shortest_path_airport_state(Graph& g) {
+    std::string airport_name, state;
+    
+    std::cout << "Enter the name of the starting aiport: ";
+    getline(std::cin, airport_name);
+    
+    std::cout << "Enter the abbreviation of the state: ";
+    getline(std::cin, state);
+    
+    Vertex airport;
+    std::vector<Vertex> v;
+    
+    // Loop through all of the vertices in the graph to find the origin airport and all of the airports in the state
+    for(Vertex ver : g.getVertices()) {
+        if(ver.getName() == airport_name) {
+            airport = ver;
+            continue;
+        }
+        
+        // Looks tries to find the state abbreviation in each vertice's town name to add to the list
+        int found = ver.getTown().find(state);
+        if(found != std::string::npos) {
+            v.push_back(ver);
+            continue;
+        }
+    }
+    
+    // Checks to see if the airport vertices was found
+    if(airport.getName() == "") {
+        std::cout << "No airports found by the name " << airport_name << std::endl;
+        return;
+    }
+    
+    // Checks to see if any airports in the state were found
+    if(v.empty()) {
+        std::cout << "No airports found in " << state << std::endl;
+        return;
+    }
+    
+    std::cout << "Shortest paths from " << airport.getName() << " to " << state << " state airports are:" << std::endl << std::endl;
+    std::cout << "Path " << std::setw(30) << "Length " << std::setw(10) << "Cost" << std::endl;
+    
+    for(Vertex ver : v) {
+        std::vector<Vertex> path;
+        int distance = g.dijkstra_shortest_path(airport, ver, path);
+        
+        // if the distance is > 3000 we do not count it
+        if(distance == intMAX) continue;
+        
+        std::string path_str = "";
+        
+        // Creates a string for the path from the origin airport to the destination in the state
+        for(int i = 0; i < path.size(); i++) {
+            path_str += path[i].getName();
+            if(i != path.size() - 1) path_str += "->";
+        }
+        
+        // Finds the cost of the path
+        int cost = 0;
+        for(int i = 0; i < path.size() - 1; i++) {
+            int cur_index = g.get_vertex_index(path[i]);
+            for(Edge edge : g.get_edges(cur_index)) {
+                if(edge.dest == g.get_vertex_index(path[i + 1])) {
+                    cost += edge.cost;
+                    break;
+                }
+            }
+        }
+        
+        // Outputs the path, distance, and cost in a neat table
+        std::cout << path_str << std::setw(31 - path_str.length() + (distance / 1000)) << distance << std::setw(13 - (distance / 1000)) << cost << std::endl;
     }
 }
 
