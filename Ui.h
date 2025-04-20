@@ -6,5 +6,6 @@
 void display_menu(Graph& g); // Menu
 void find_shortest_path_ui(Graph& g); // Task 2
 void find_shortest_path_airport_state(Graph& g); // Task 3
+void find_shortest_path_with_k_stops(Graph& g); // Task 4
 
 #endif 
