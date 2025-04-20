@@ -7,9 +7,10 @@ class MinHeap {
 public:
     MinHeap() {}
     MinHeap(std::vector<T> v);
-    void insert(const T& val); 
+    void insert(const T& val);
     void print() const;
     T delete_min();
+    bool empty() const;
 
 private:
     std::vector<T> data;

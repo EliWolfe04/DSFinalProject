@@ -1,11 +1,7 @@
 #include "Graph.h"
-#include "MinHeap.h"
 #include "MinHeap.cpp"
 #include "Queue.h"
 
-#include <unistd.h>
-#include <climits>
-#include <iostream>
 #define intMAX 3000
 
 void Graph::insert_vertex(const Vertex& ver) {
@@ -17,7 +13,7 @@ void Graph::insert_vertex(const Vertex& ver) {
 }
 
 int Graph::get_vertex_index(const Vertex& ver) {
-    for(int i = 0; i < vertices.size(); i++) {
+    for (int i = 0; i < vertices.size(); i++) {
         if (vertices[i].getName() == ver.getName()) {
             return i;
         }
@@ -43,7 +39,7 @@ void Graph::add_edge(const Vertex& ver1, const Vertex& ver2, int distance, int c
 void Graph::print() const {
     for (int i = 0; i < vertices.size(); i++) {
         std::cout << "{ " << vertices[i].getName() << ": ";
-        for(int j = 0; j < edges[i].size(); j++) {
+        for (int j = 0; j < edges[i].size(); j++) {
             std::cout << '{' << vertices[edges[i][j].dest].getName() << ", ";
             std::cout << edges[i][j].distance << " miles, $" << edges[i][j].cost << "} ";
         }
@@ -65,7 +61,7 @@ void Graph::BFS(Vertex& ver) {
     while (!q.empty()) {
         int i = q.getFront();
         std::cout << vertices[i].getName() << ' ';
-        for(int j = 0; j < edges[i].size(); j++) {
+        for (int j = 0; j < edges[i].size(); j++) {
             int adjacent_ver = edges[i][j].dest;
             if (vertices[adjacent_ver].getVisited() == false) {
                 vertices[adjacent_ver].setVisited(true);
@@ -80,70 +76,70 @@ void Graph::BFS(Vertex& ver) {
 
 
 void Graph::clean_visited() {
-    for(Vertex& v : vertices) {
+    for (Vertex& v : vertices) {
         v.setVisited(false);
     }
 }
 
 int Graph::dijkstra_shortest_path(const Vertex& src, const Vertex& dest, std::vector<Vertex>& path) {
-	int i_src = get_vertex_index(src);
-	int i_dest = get_vertex_index(dest);
+    int i_src = get_vertex_index(src);
+    int i_dest = get_vertex_index(dest);
 
-	if (i_src == -1 || i_dest == -1) {
-		throw std::string("Shortest path: incorrect vertices");
-	}
+    if (i_src == -1 || i_dest == -1) {
+        throw std::string("Shortest path: incorrect vertices");
+    }
 
-	clean_visited();
-	std::vector<int> distances(vertices.size(), intMAX); // represents the distances from source to all other vertices
-	std::vector<int> predecessors(vertices.size(), -1); // tracks the predecessors for path reconstruction
+    clean_visited();
+    std::vector<int> distances(vertices.size(), intMAX); // represents the distances from source to all other vertices
+    std::vector<int> predecessors(vertices.size(), -1); // tracks the predecessors for path reconstruction
 
-	// set initial distances
-	distances[i_src] = 0;
+    // set initial distances
+    distances[i_src] = 0;
 
-	MinHeap<Edge> heap;
-	heap.insert(Edge(i_src, i_src, 0, 0)); // Insert source vertex with distance 0
-	int vertices_visited = 0;
+    MinHeap<Edge> heap;
+    heap.insert(Edge(i_src, i_src, 0, 0)); // Insert source vertex with distance 0
+    int vertices_visited = 0;
 
-	while (vertices_visited < vertices.size()) {
-		// Get the edge with the smallest distance
-		Edge e = heap.delete_min();
-		int cur_ver = e.dest;
+    while (vertices_visited < vertices.size()) {
+        // Get the edge with the smallest distance
+        Edge e = heap.delete_min();
+        int cur_ver = e.dest;
 
-		// Mark the current vertex as visited
-		vertices[cur_ver].setVisited(true);
-		vertices_visited++;
+        // Mark the current vertex as visited
+        vertices[cur_ver].setVisited(true);
+        vertices_visited++;
 
-		// If we reached the destination, stop
-		if (cur_ver == i_dest) break;
+        // If we reached the destination, stop
+        if (cur_ver == i_dest) break;
 
-		// Explore neighbors
-		for (const Edge& edge : edges[cur_ver]) {
-			int adj = edge.dest;
-			if (!vertices[adj].getVisited()) {
-				int new_dist = distances[cur_ver] + edge.distance;
-				if (new_dist < distances[adj]) {
-					distances[adj] = new_dist;
-					predecessors[adj] = cur_ver; // Store the predecessor
-					heap.insert(edge);
-				}
-			}
-		}
-	}
+        // Explore neighbors
+        for (const Edge& edge : edges[cur_ver]) {
+            int adj = edge.dest;
+            if (!vertices[adj].getVisited()) {
+                int new_dist = distances[cur_ver] + edge.distance;
+                if (new_dist < distances[adj]) {
+                    distances[adj] = new_dist;
+                    predecessors[adj] = cur_ver; // Store the predecessor
+                    heap.insert(edge);
+                }
+            }
+        }
+    }
 
-	// Reconstruct the path from destination to source using the predecessors
-	int cur_ver = i_dest;
-	while (cur_ver != -1) {
-		path.push_back(vertices[cur_ver]);
-		cur_ver = predecessors[cur_ver];
-	}
+    // Reconstruct the path from destination to source using the predecessors
+    int cur_ver = i_dest;
+    while (cur_ver != -1) {
+        path.push_back(vertices[cur_ver]);
+        cur_ver = predecessors[cur_ver];
+    }
 
-	std::reverse(path.begin(), path.end()); // Reverse to get the correct order (source to destination)
+    std::reverse(path.begin(), path.end()); // Reverse to get the correct order (source to destination)
 
-	return distances[i_dest];
+    return distances[i_dest];
 }
 
 const std::vector<Edge>& Graph::get_edges(int vertex_idx) const {
-	return edges[vertex_idx];
+    return edges[vertex_idx];
 }
 
 Vertex* Graph::find_vertex_by_name(const std::string& name) {
@@ -269,4 +265,8 @@ Graph Graph::create_undirected_graph() const {
         }
     }
     return gu;
+}
+
+const std::vector<Vertex>& Graph::get_vertices() const {
+    return vertices;
 }

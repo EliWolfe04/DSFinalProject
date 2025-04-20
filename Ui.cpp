@@ -1,12 +1,8 @@
 #include "Ui.h"
-#include "Edge.h"
 #include <iostream>
-#include <string>
-#include <climits>
-#include <limits>
-#include <vector>
 #include <iomanip>
 #include "Queue.h"
+#include "MST.h"
 
 #define intMAX 3000 
 
@@ -18,10 +14,10 @@ void display_menu(Graph& g) {
         std::cout << "1. Find shortest path between two airports\n";
         std::cout << "2. Find all shortest paths between an airport and a state.\n";
         std::cout << "3. Find the shortest path between airports given a number of stops\n";
-        std::cout << "4. Option 4 (Not implemented yet)\n";
-        std::cout << "5. Count and display total direct flight connections\n";
-        std::cout << "6. Create undirected graph G_u and display it\n";
-        std::cout << "7. Option 7 (Not implemented yet)\n";
+        std::cout << "4. Count and display total direct flight connections\n";
+        std::cout << "5. Create undirected graph G_u and display it\n";
+        std::cout << "6. Generate MST (Prim's)\n";
+        std::cout << "7. Generate MST (Kruskal’s)\n";
         std::cout << "0. Exit\n";
         std::cout << "Enter your choice: ";
 
@@ -38,21 +34,33 @@ void display_menu(Graph& g) {
         case 3:
             find_shortest_path_with_k_stops(g); // Task 4
             break;
-        case 5:
+        case 4:
             g.count_and_display_connections(); // Task 5
             break;
-        case 6: {
+        case 5: {
             Graph gu = g.create_undirected_graph(); // Task 6
             std::cout << "\n--- Undirected Graph G_u ---\n";
             gu.print();
             break;
         }
+        case 6: {
+            Graph gu = g.create_undirected_graph();
+            std::cout << "\n--- Running Prim's MST on G_u ---\n";
+            generate_mst_prim(gu); // Task 7
+            break;
+        }
+        case 7: {
+            Graph gu = g.create_undirected_graph();
+            std::cout << "\n--- Running Kruskal's MST on G_u ---\n";
+            generate_mst_kruskal(gu); // Task 8
+            break;
+        }
         case 0:
             std::cout << "Exiting...\n";
             return;
-        case 4: case 7:
-            std::cout << "Sorry, that option isn't implemented yet.\n";
-            break;
+            // case #:
+            //     std::cout << "Sorry, that option isn't implemented yet.\n";
+            //     break;
         default:
             std::cout << "Invalid choice. Try again.\n";
             break;
@@ -208,46 +216,50 @@ void find_shortest_path_ui(Graph& g) {
 
 // Task 4
 void find_shortest_path_with_k_stops(Graph& g) {
-    std::string origin_name, destination_name;
+    std::string originName, destinationName;
     int k;
 
+    // Find both airports
+
     std::cout << "Enter the name of the starting airport: ";
-    std::getline(std::cin, origin_name);
+    std::getline(std::cin, originName);
+
+    Vertex* origin = g.find_vertex_by_name(originName);
+    if (!origin) {
+        std::cout << "No airport found by the name " << originName << std::endl;
+        return;
+    }
 
     std::cout << "Enter the name of the destination airport: ";
-    std::getline(std::cin, destination_name);
+    std::getline(std::cin, destinationName);
+
+    Vertex* destination = g.find_vertex_by_name(destinationName);
+    if (!destination) {
+        std::cout << "No airport found by the name " << destinationName << std::endl;
+        return;
+    }
 
     std::cout << "Enter the number of stops (K): ";
     std::cin >> k;
     std::cin.ignore();  // Clear input buffer
 
-    Vertex* origin = g.find_vertex_by_name(origin_name);
-    Vertex* destination = g.find_vertex_by_name(destination_name); // Find both airports
-
-    if (!origin) {
-        std::cout << "No airport found by the name " << origin_name << std::endl;
-        return;
-    }
-    if (!destination) {
-        std::cout << "No airport found by the name " << destination_name << std::endl;
-        return;
-    }
-
-    int origin_index = g.get_vertex_index(*origin);
-    int dest_index = g.get_vertex_index(*destination);
+    int originIndex = g.get_vertex_index(*origin);
+    int destinationIndex = g.get_vertex_index(*destination);
 
     struct QueueNode {
         std::vector<Vertex> path;
-        int current_index;
+        int currentIndex;
         int distance;
+        int cost;
         int stops;
-    }; // struct to reduce the need for multiple queues
+    };// struct to reduce the need for multiple queues
 
     Queue<QueueNode> q;
-    q.enQueue({ {*origin}, origin_index, 0, 0 });
+    q.enQueue({ {*origin}, originIndex, 0, 0, 0 });
 
-    int min_distance = INT_MAX;
-    std::vector<Vertex> best_path;
+    int minDistance = intMAX;
+    int kCost = intMAX;
+    std::vector<Vertex> bestPath;
 
     while (!q.empty()) {
         QueueNode node = q.getFront();
@@ -255,34 +267,42 @@ void find_shortest_path_with_k_stops(Graph& g) {
 
         if (node.stops > k) continue;
 
-        if (node.current_index == dest_index && node.stops == k) {
-            if (node.distance < min_distance) {
-                min_distance = node.distance;
-                best_path = node.path;
+        if (node.currentIndex == destinationIndex && node.stops == k) {
+            if (node.distance < minDistance) {
+                minDistance = node.distance;
+                kCost = node.cost;
+                bestPath = node.path;
             } // save optimal path with conditions met
             continue;
         }
 
-        for (const Edge& edge : g.get_edges(node.current_index)) {
-            std::vector<Vertex> new_path = node.path;
-            new_path.push_back(g.getVertices()[edge.dest]);
-            q.enQueue({ new_path, edge.dest, node.distance + edge.distance, node.stops + 1 });
-        } // BFS for k stops
+        for (const Edge& edge : g.get_edges(node.currentIndex)) {
+            std::vector<Vertex> newPath = node.path;
+            newPath.push_back(g.getVertices()[edge.dest]);
+            q.enQueue({
+                newPath,
+                edge.dest,
+                node.distance + edge.distance,
+                node.cost + edge.cost,
+                node.stops + 1
+                });
+        }
     }
 
-    if (best_path.empty()) {
-        std::cout << "No path exists from " << origin->getName()
-            << " to " << destination->getName()
+    if (bestPath.empty()) {
+        std::cout << "No path exists from " << originName
+            << " to " << destinationName
             << " with exactly " << k << " stops." << std::endl;
     }
     else {
         std::cout << "Shortest path from " << origin->getName()
             << " to " << destination->getName()
             << " with exactly " << k << " stops:" << std::endl;
-        for (size_t i = 0; i < best_path.size(); ++i) {
-            std::cout << best_path[i].getName();
-            if (i != best_path.size() - 1) std::cout << " -> ";
+        for (size_t i = 0; i < bestPath.size(); ++i) {
+            std::cout << bestPath[i].getName();
+            if (i != bestPath.size() - 1) std::cout << " -> ";
         }
-        std::cout << " (Distance: " << min_distance << ")" << std::endl;
+
+        std::cout << "\nThe length is " << minDistance << ". The cost is " << kCost << ".\n";
     }
 }

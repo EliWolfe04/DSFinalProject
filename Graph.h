@@ -9,6 +9,9 @@ class Graph {
 public:
     Graph() {}
 
+    void prim_mst() const;
+    void kruskal_mst();
+
     void insert_vertex(const Vertex& ver);
     void add_edge(const Vertex& ver1, const Vertex& ver2, int distance, int cost); //connect ver1 with ver2
 
@@ -22,15 +25,16 @@ public:
 
     Vertex* find_vertex_by_name(const std::string& name);
     const std::vector<Vertex>& getVertices() const {
-    return vertices;
-}
+        return vertices;
+    }
+    const std::vector<Vertex>& get_vertices() const;
 
     const std::vector<Edge>& get_edges(int vertex_idx) const;
     int get_vertex_index(const Vertex& ver);
     void count_and_display_connections() const;
     Graph create_undirected_graph() const;
 
-    
+
 private:
     std::vector<Vertex> vertices; //nodes
     std::vector<std::vector<Edge>> edges; //connections

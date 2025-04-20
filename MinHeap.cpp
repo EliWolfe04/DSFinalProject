@@ -17,7 +17,7 @@ void MinHeap<T>::print() const {
     int cur_level = 0;
     int new_level = 1;
 
-    for(const T& i : data) {
+    for (const T& i : data) {
         std::cout << i << ' ';
         cur_level++;
         if (cur_level == new_level) {
@@ -34,7 +34,7 @@ template<typename T>
 T MinHeap<T>::delete_min() {
     if (data.empty()) {
         throw std::string("delete_min: Empty Heap\n");
-    }    
+    }
     T res = data[0];
     data[0] = data[data.size() - 1]; //set the root with the value of the last node
     data.pop_back(); //deletes the last node
@@ -60,7 +60,7 @@ void MinHeap<T>::percolate_down(int i) {
         if (parent_index * 2 + 1 >= data.size()) {
             break;
         }
-        else if (parent_index * 2 + 2 < data.size()){ //has 2 kids
+        else if (parent_index * 2 + 2 < data.size()) { //has 2 kids
             kids_min_index = min_index(parent_index * 2 + 1, parent_index * 2 + 2);
 
         }
@@ -76,7 +76,7 @@ void MinHeap<T>::percolate_down(int i) {
             break;
         }
 
-    } while(1);
+    } while (1);
 
 }
 
@@ -84,8 +84,14 @@ void MinHeap<T>::percolate_down(int i) {
 template<typename T>
 int MinHeap<T>::min_index(int i1, int i2) const {
     if (i1 >= data.size() || i2 >= data.size() || i1 < 0 || i2 < 0) {
-        throw std::string ("min_index: incorrect index");
+        throw std::string("min_index: incorrect index");
     }
 
     return (data[i1] < data[i2] ? i1 : i2);
 }
+
+template<typename T>
+bool MinHeap<T>::empty() const {
+    return data.empty();
+}
+
